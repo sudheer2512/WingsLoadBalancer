@@ -1,0 +1,130 @@
+# Wings Intelligent Load Balancer — local multi-instance test environment.
+#
+#   cd deploy/docker && cp .env.example .env   (edit the values)
+#   docker compose up --build
+#
+#   Public entry (NLB → 2 gateways):  http://localhost:8080      sign in: company ABC, user user1
+#   Staging binding:                  http://staging.localhost:8080
+#   Admin UI + API docs:              http://localhost:8090  /  http://localhost:8090/api/docs
+#
+# SQL Server, Redis, two gateways behind nginx, two monitor instances (one leader, one standby), the admin API and
+# eight mock application servers that report which server handled each request.
+
+x-dotnet-env: &dotnet-env
+  Database__Provider: SqlServer
+  ConnectionStrings__Wings: "Server=sqlserver;Database=WingsLoadBalancer;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;Encrypt=True"
+  Redis__Configuration: "redis:6379,abortConnect=false"
+  BackendTrust__MasterKey: "${WINGS_BACKEND_MASTER_KEY}"
+  DestinationPolicy__AllowInsecureBackends: "true"
+  DestinationPolicy__AllowedBackendHosts__0: "app-server-*"
+  DestinationPolicy__AllowedBackendHosts__1: "staging-*"
+  DestinationPolicy__AllowedBackendNetworks__0: "172.16.0.0/12"
+  Logging__LogLevel__Default: "Information"
+
+x-mock: &mock
+  build: { context: ../.., dockerfile: deploy/docker/Dockerfile, args: { PROJECT: samples/Wings.MockBackend/Wings.MockBackend.csproj, ENTRY: Wings.MockBackend.dll } }
+  image: wings-lb/mock-backend
+  restart: unless-stopped
+  networks: [wings]
+
+x-gateway: &gateway
+  build: { context: ../.., dockerfile: deploy/docker/Dockerfile, args: { PROJECT: src/Wings.Gateway/Wings.Gateway.csproj, ENTRY: Wings.Gateway.dll } }
+  image: wings-lb/gateway
+  restart: unless-stopped
+  depends_on: [admin, redis]
+  networks: [wings]
+
+x-monitor: &monitor
+  build: { context: ../.., dockerfile: deploy/docker/Dockerfile, args: { PROJECT: src/Wings.Monitor.Service/Wings.Monitor.Service.csproj, ENTRY: Wings.Monitor.Service.dll } }
+  image: wings-lb/monitor
+  restart: unless-stopped
+  depends_on: [admin, redis]
+  networks: [wings]
+  environment:
+    <<: *dotnet-env
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment: { ACCEPT_EULA: "Y", MSSQL_SA_PASSWORD: "${SA_PASSWORD}", MSSQL_PID: Developer }
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      retries: 20
+    volumes: [sqldata:/var/opt/mssql]
+    networks: [wings]
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    networks: [wings]
+
+  admin:
+    build: { context: ../.., dockerfile: deploy/docker/Dockerfile, args: { PROJECT: src/Wings.Admin.Api/Wings.Admin.Api.csproj, ENTRY: Wings.Admin.Api.dll } }
+    image: wings-lb/admin
+    restart: unless-stopped
+    depends_on:
+      sqlserver: { condition: service_healthy }
+      redis: { condition: service_started }
+    ports: ["8090:8080"]
+    environment:
+      <<: *dotnet-env
+      Admin__RequireHttpsCookies: "false"
+      Admin__CookieName: "Wings.Admin"
+      Admin__GatewayUrl: "http://nlb"
+      Monitor__RunInAdmin: "false"
+      Seed__RunOnAdmin: "true"
+      Seed__ApplyMigrations: "true"
+      Seed__SampleData: "true"
+      Seed__AdminPassword: "${WINGS_ADMIN_PASSWORD}"
+      Seed__SampleUserPassword: "${WINGS_SAMPLE_USER_PASSWORD}"
+      Seed__SampleBackendUrlTemplate: "http://{name}:8080"
+      DestinationPolicy__AllowedRedirectHosts__0: "*.localhost"
+    networks: [wings]
+
+  monitor-01: { <<: *monitor }
+  monitor-02: { <<: *monitor }
+
+  gateway-01:
+    <<: *gateway
+    environment:
+      <<: *dotnet-env
+      Gateway__InstanceName: Gateway-01
+      Gateway__RequireHttpsCookies: "false"
+      Gateway__CookieName: "Wings.Session"
+      Gateway__KnownNetworks__0: "172.16.0.0/12"
+      Health__GatewayMode: Shared
+      ConfigurationSync__LastKnownGoodPath: /tmp/routing-lkg.bin
+
+  gateway-02:
+    <<: *gateway
+    environment:
+      <<: *dotnet-env
+      Gateway__InstanceName: Gateway-02
+      Gateway__RequireHttpsCookies: "false"
+      Gateway__CookieName: "Wings.Session"
+      Gateway__KnownNetworks__0: "172.16.0.0/12"
+      Health__GatewayMode: Shared
+      ConfigurationSync__LastKnownGoodPath: /tmp/routing-lkg.bin
+
+  nlb:
+    image: nginx:1.27-alpine
+    depends_on: [gateway-01, gateway-02]
+    ports: ["8080:80"]
+    volumes: ["./nginx.conf:/etc/nginx/conf.d/default.conf:ro"]
+    networks: [wings]
+
+  app-server-01: { <<: *mock, environment: { MockBackend__ServerName: APP-SERVER-01, MockBackend__ServerId: 0192f000-0000-7000-8000-000000000301, MockBackend__MasterKey: "${WINGS_BACKEND_MASTER_KEY}", MockBackend__EnableTestControls: "true" } }
+  app-server-02: { <<: *mock, environment: { MockBackend__ServerName: APP-SERVER-02, MockBackend__ServerId: 0192f000-0000-7000-8000-000000000302, MockBackend__MasterKey: "${WINGS_BACKEND_MASTER_KEY}", MockBackend__EnableTestControls: "true" } }
+  app-server-03: { <<: *mock, environment: { MockBackend__ServerName: APP-SERVER-03, MockBackend__ServerId: 0192f000-0000-7000-8000-000000000303, MockBackend__MasterKey: "${WINGS_BACKEND_MASTER_KEY}", MockBackend__EnableTestControls: "true" } }
+  app-server-04: { <<: *mock, environment: { MockBackend__ServerName: APP-SERVER-04, MockBackend__ServerId: 0192f000-0000-7000-8000-000000000304, MockBackend__MasterKey: "${WINGS_BACKEND_MASTER_KEY}", MockBackend__EnableTestControls: "true" } }
+  app-server-05: { <<: *mock, environment: { MockBackend__ServerName: APP-SERVER-05, MockBackend__ServerId: 0192f000-0000-7000-8000-000000000305, MockBackend__MasterKey: "${WINGS_BACKEND_MASTER_KEY}", MockBackend__EnableTestControls: "true" } }
+  app-server-06: { <<: *mock, environment: { MockBackend__ServerName: APP-SERVER-06, MockBackend__ServerId: 0192f000-0000-7000-8000-000000000306, MockBackend__MasterKey: "${WINGS_BACKEND_MASTER_KEY}", MockBackend__EnableTestControls: "true" } }
+  app-server-07: { <<: *mock, environment: { MockBackend__ServerName: APP-SERVER-07, MockBackend__ServerId: 0192f000-0000-7000-8000-000000000307, MockBackend__MasterKey: "${WINGS_BACKEND_MASTER_KEY}", MockBackend__EnableTestControls: "true" } }
+  staging-01:    { <<: *mock, environment: { MockBackend__ServerName: STAGING-01, MockBackend__ServerId: 0192f000-0000-7000-8000-000000000308, MockBackend__Version: "2.2.0", MockBackend__MasterKey: "${WINGS_BACKEND_MASTER_KEY}", MockBackend__EnableTestControls: "true" } }
+
+networks:
+  wings: {}
+
+volumes:
+  sqldata: {}

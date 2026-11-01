@@ -1,0 +1,99 @@
+{
+  "Database": {
+    "Provider": "SqlServer"
+  },
+  "ConnectionStrings": {
+    "Wings": "Server=sql-ag-listener.corp.local;Database=WingsLoadBalancer;Integrated Security=True;Encrypt=True;MultiSubnetFailover=True"
+  },
+  "Redis": {
+    "Configuration": "redis01.corp.local:6380,redis02.corp.local:6380,ssl=true,abortConnect=false",
+    "KeyPrefix": "wings:"
+  },
+  "Gateway": {
+    "InstanceName": "Gateway-01",
+    "CookieName": "__Host-Wings.Session",
+    "RequireHttpsCookies": true,
+    "SessionIdleMinutes": 30,
+    "SessionAbsoluteHours": 12,
+    "MaxRequestBodyBytes": 209715200,
+    "RetryIdempotentRequests": true,
+    "KnownProxies": [],
+    "KnownNetworks": [],
+    "LoginPermitsPerMinutePerIp": 20,
+    "ProxyPermitsPerMinutePerIp": 6000,
+    "ShutdownTimeoutSeconds": 60
+  },
+  "Routing": {
+    "LastKnownGoodMaxAgeMinutes": 30,
+    "TreatUnknownHealthAsHealthy": false
+  },
+  "ConfigurationSync": {
+    "VersionPollSeconds": 15,
+    "SnapshotCacheMinutes": 60,
+    "LastKnownGoodPath": "App_Data/routing-lkg.bin"
+  },
+  "Health": {
+    "GatewayMode": "Shared",
+    "FeedPollSeconds": 3,
+    "SharedStateMaxAgeSeconds": 120,
+    "PassiveFailuresToQuarantine": 3,
+    "PassiveQuarantineSeconds": 30
+  },
+  "BackendConnections": {
+    "ConnectTimeoutSeconds": 5,
+    "PooledConnectionLifetimeMinutes": 5,
+    "AllowUntrustedBackendCertificates": false,
+    "ClientCertificateStore": "LocalMachine"
+  },
+  "DestinationPolicy": {
+    "AllowedBackendHosts": [
+      "*.wings.internal",
+      "app-server-*.corp.local"
+    ],
+    "AllowedBackendNetworks": [
+      "10.20.0.0/16"
+    ],
+    "AllowedRedirectHosts": [
+      "*.erp.example.com"
+    ],
+    "AllowInsecureBackends": false,
+    "AllowLoopback": false
+  },
+  "Authentication": {
+    "MaxFailedAttempts": 5,
+    "LockoutMinutes": 15,
+    "PasswordIterations": 210000
+  },
+  "WingsAuthService": {
+    "BaseUrl": null,
+    "ValidatePath": "/api/v1/credentials/validate",
+    "TimeoutSeconds": 10
+  },
+  "Oidc": {
+    "Authority": null,
+    "ClientId": null,
+    "SubjectClaim": "sub"
+  },
+  "Seed": {
+    "ApplyMigrations": false,
+    "SampleData": false,
+    "RunOnGateway": false
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning",
+      "Yarp": "Warning",
+      "Microsoft.EntityFrameworkCore": "Warning"
+    },
+    "Console": {
+      "FormatterName": "json",
+      "FormatterOptions": {
+        "IncludeScopes": true,
+        "UseUtcTimestamp": true,
+        "TimestampFormat": "yyyy-MM-ddTHH:mm:ss.fffZ"
+      }
+    }
+  },
+  "OTEL_EXPORTER_OTLP_ENDPOINT": "http://otel-collector.corp.local:4317"
+}

@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Wings.Routing.Core/Wings.Routing.Core.csproj" />
+    <Project Path="src/Wings.LoadBalancer.Data/Wings.LoadBalancer.Data.csproj" />
+    <Project Path="src/Wings.LoadBalancer.Infrastructure/Wings.LoadBalancer.Infrastructure.csproj" />
+    <Project Path="src/Wings.Gateway/Wings.Gateway.csproj" />
+    <Project Path="src/Wings.Admin.Api/Wings.Admin.Api.csproj" />
+    <Project Path="src/Wings.Monitor.Service/Wings.Monitor.Service.csproj" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/Wings.MockBackend/Wings.MockBackend.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Wings.Routing.Core.Tests/Wings.Routing.Core.Tests.csproj" />
+    <Project Path="tests/Wings.IntegrationTests/Wings.IntegrationTests.csproj" />
+    <Project Path="tests/Wings.Benchmarks/Wings.Benchmarks.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <RootNamespace>Wings.MockBackend</RootNamespace>
+  </PropertyGroup>
+</Project>

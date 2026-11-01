@@ -1,0 +1,5 @@
+Company,Username,Action,PrimaryServer,SecondaryServer,FailoverPolicy,Application,Environment,EffectiveFrom,EffectiveTo,Reason
+ABC,user1,Assign,APP-SERVER-01,,No failover,,Production,,,Finance user on dedicated server
+ABC,accounts,Assign,APP-SERVER-01,APP-SERVER-02,"Secondary, then dedicated failover pool",,Production,,,Accounts with fallback to the company server
+ABC,manager,Assign,APP-SERVER-01,,,HR,Production,2026-12-01T00:00:00Z,,Scheduled: HR app moves to server 01 on 1 Dec
+ABC,user2,Remove,,,,,Production,,,Return to company default

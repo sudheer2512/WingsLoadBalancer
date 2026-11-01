@@ -1,0 +1,60 @@
+{
+  "Database": {
+    "Provider": "SqlServer"
+  },
+  "ConnectionStrings": {
+    "Wings": "Server=sql-ag-listener.corp.local;Database=WingsLoadBalancer;Integrated Security=True;Encrypt=True;MultiSubnetFailover=True"
+  },
+  "Redis": {
+    "Configuration": "redis01.corp.local:6380,ssl=true,abortConnect=false"
+  },
+  "Admin": {
+    "CookieName": "__Host-Wings.Admin",
+    "RequireHttpsCookies": true,
+    "SessionMinutes": 60,
+    "GatewayUrl": "https://erp.example.com",
+    "LoginPermitsPerMinute": 10
+  },
+  "Monitor": {
+    "RunInAdmin": false
+  },
+  "DestinationPolicy": {
+    "AllowedBackendHosts": [
+      "*.wings.internal"
+    ],
+    "AllowedBackendNetworks": [
+      "10.20.0.0/16"
+    ],
+    "AllowedRedirectHosts": [
+      "*.erp.example.com"
+    ]
+  },
+  "Notifications": {
+    "SmtpHost": "smtp.corp.local",
+    "SmtpPort": 587,
+    "SmtpEnableSsl": true,
+    "From": "wings-lb@example.com",
+    "AdminPortalUrl": "https://wings-admin.corp.local"
+  },
+  "Seed": {
+    "ApplyMigrations": false,
+    "SampleData": false,
+    "RunOnAdmin": true,
+    "AdminUsername": "admin"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning",
+      "Microsoft.EntityFrameworkCore": "Warning"
+    },
+    "Console": {
+      "FormatterName": "json",
+      "FormatterOptions": {
+        "IncludeScopes": true,
+        "UseUtcTimestamp": true,
+        "TimestampFormat": "yyyy-MM-ddTHH:mm:ss.fffZ"
+      }
+    }
+  }
+}

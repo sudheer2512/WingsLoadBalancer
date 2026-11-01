@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Wings.LoadBalancer.Infrastructure</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.14" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.StackExchangeRedis" Version="10.0.14" />
+    <PackageReference Include="Otp.NET" Version="1.4.1" />
+    <PackageReference Include="ClosedXML" Version="0.105.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Wings.LoadBalancer.Data\Wings.LoadBalancer.Data.csproj" />
+  </ItemGroup>
+</Project>

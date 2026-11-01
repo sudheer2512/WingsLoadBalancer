@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Sign in · Wings</title>
+  <link rel="stylesheet" href="/_wings/login.css">
+</head>
+<body>
+  <main class="card">
+    <header>
+      <div class="logo" aria-hidden="true">W</div>
+      <div>
+        <h1>Wings</h1>
+        <p class="sub">Sign in to your organisation</p>
+      </div>
+    </header>
+    <form id="login" novalidate>
+      <label>Company
+        <input id="company" name="company" autocomplete="organization" required maxlength="200" autofocus>
+      </label>
+      <label>Username
+        <input id="username" name="username" autocomplete="username" required maxlength="200">
+      </label>
+      <label id="password-row">Password
+        <input id="password" name="password" type="password" autocomplete="current-password" required maxlength="1024">
+      </label>
+      <label id="mfa-row" hidden>Authentication code
+        <input id="mfa" name="mfa" inputmode="numeric" autocomplete="one-time-code" maxlength="10" pattern="[0-9]*">
+      </label>
+      <p id="message" role="alert" aria-live="polite"></p>
+      <button id="submit" type="submit">Sign in</button>
+    </form>
+  </main>
+  <script src="/_wings/login.js"></script>
+</body>
+</html>

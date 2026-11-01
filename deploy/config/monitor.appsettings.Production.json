@@ -1,0 +1,61 @@
+{
+  "Database": {
+    "Provider": "SqlServer"
+  },
+  "ConnectionStrings": {
+    "Wings": "Server=sql-ag-listener.corp.local;Database=WingsLoadBalancer;Integrated Security=True;Encrypt=True;MultiSubnetFailover=True"
+  },
+  "Redis": {
+    "Configuration": "redis01.corp.local:6380,ssl=true,abortConnect=false"
+  },
+  "Health": {
+    "IntervalSeconds": 10,
+    "TimeoutSeconds": 5,
+    "MetricsIntervalSeconds": 60,
+    "MaxParallelChecks": 32,
+    "FailuresToUnhealthy": 3,
+    "SuccessesToRecover": 3,
+    "StabilizationSeconds": 30,
+    "DegradedResponseTimeMs": 1500,
+    "DegradedCpuPercent": 90,
+    "DegradedMemoryPercent": 92,
+    "DegradedErrorRatePercent": 5
+  },
+  "Operations": {
+    "DrainCheckSeconds": 15,
+    "AlertEvaluationSeconds": 30,
+    "RetentionRunHours": 6,
+    "GatewayHeartbeatStaleSeconds": 120
+  },
+  "BackendConnections": {
+    "ConnectTimeoutSeconds": 5
+  },
+  "DestinationPolicy": {
+    "AllowedBackendHosts": [
+      "*.wings.internal"
+    ],
+    "AllowedBackendNetworks": [
+      "10.20.0.0/16"
+    ]
+  },
+  "Notifications": {
+    "SmtpHost": "smtp.corp.local",
+    "From": "wings-lb@example.com",
+    "AdminPortalUrl": "https://wings-admin.corp.local"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning",
+      "Microsoft.EntityFrameworkCore": "Warning"
+    },
+    "Console": {
+      "FormatterName": "json",
+      "FormatterOptions": {
+        "IncludeScopes": true,
+        "UseUtcTimestamp": true,
+        "TimestampFormat": "yyyy-MM-ddTHH:mm:ss.fffZ"
+      }
+    }
+  }
+}
